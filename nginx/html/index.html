@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgendaPro — Sistema de Agendamentos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- ═══════════════════════════════════ SIDEBAR ═══ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-icon">◈</span>
+      <span class="brand-name">AgendaPro</span>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" data-tab="clientes">
+        <span class="nav-icon">◎</span> Clientes
+      </button>
+      <button class="nav-item" data-tab="agendamentos">
+        <span class="nav-icon">◷</span> Agendamentos
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="api-status" id="apiStatus">
+        <span class="dot"></span> verificando…
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════════════════════════ MAIN ═══════ -->
+  <main class="main">
+
+    <!-- ──────────── CLIENTES ──────────────────────── -->
+    <section class="tab-panel active" id="tab-clientes">
+      <header class="panel-header">
+        <div>
+          <h1 class="panel-title">Clientes</h1>
+          <p class="panel-sub">Gerencie sua base de clientes</p>
+        </div>
+        <button class="btn-primary" onclick="openModal('modalCliente')">
+          + Novo cliente
+        </button>
+      </header>
+
+      <div class="search-bar">
+        <input type="text" id="searchCliente" placeholder="Buscar cliente…" oninput="filtrarClientes()" />
+      </div>
+
+      <div class="card-grid" id="listaClientes">
+        <div class="empty-state">Carregando clientes…</div>
+      </div>
+    </section>
+
+    <!-- ──────────── AGENDAMENTOS ──────────────────── -->
+    <section class="tab-panel" id="tab-agendamentos">
+      <header class="panel-header">
+        <div>
+          <h1 class="panel-title">Agendamentos</h1>
+          <p class="panel-sub">Controle todos os seus horários</p>
+        </div>
+        <button class="btn-primary" onclick="openModal('modalAgendamento')">
+          + Novo agendamento
+        </button>
+      </header>
+
+      <div class="search-bar">
+        <select id="filterStatus" onchange="carregarAgendamentos()">
+          <option value="">Todos os status</option>
+          <option value="pendente">Pendente</option>
+          <option value="confirmado">Confirmado</option>
+          <option value="cancelado">Cancelado</option>
+          <option value="concluido">Concluído</option>
+        </select>
+      </div>
+
+      <div class="ag-table-wrap">
+        <table class="ag-table" id="tabelaAgendamentos">
+          <thead>
+            <tr>
+              <th>#</th><th>Cliente</th><th>Serviço</th>
+              <th>Data / Hora</th><th>Status</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="bodyAgendamentos">
+            <tr><td colspan="6" class="td-empty">Carregando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- ═══════════════════════════════════ MODAIS ══════ -->
+
+  <!-- ── Modal: Novo / Editar Cliente ── -->
+  <div class="modal-backdrop" id="modalCliente">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('modalCliente')">✕</button>
+      <h2 class="modal-title" id="modalClienteTitle">Novo cliente</h2>
+      <form id="formCliente" onsubmit="salvarCliente(event)">
+        <input type="hidden" id="clienteId" />
+        <div class="form-group">
+          <label>Nome completo</label>
+          <input type="text" id="clienteNome" required placeholder="Maria Silva" />
+        </div>
+        <div class="form-group">
+          <label>E-mail</label>
+          <input type="email" id="clienteEmail" required placeholder="maria@email.com" />
+        </div>
+        <div class="form-group">
+          <label>Telefone</label>
+          <input type="tel" id="clienteTelefone" required placeholder="(27) 99999-0000" />
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-ghost" onclick="closeModal('modalCliente')">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Modal: Novo / Editar Agendamento ── -->
+  <div class="modal-backdrop" id="modalAgendamento">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('modalAgendamento')">✕</button>
+      <h2 class="modal-title" id="modalAgendamentoTitle">Novo agendamento</h2>
+      <form id="formAgendamento" onsubmit="salvarAgendamento(event)">
+        <input type="hidden" id="agendamentoId" />
+        <div class="form-group">
+          <label>Cliente</label>
+          <select id="agendamentoClienteId" required>
+            <option value="">Selecione um cliente…</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Serviço</label>
+          <input type="text" id="agendamentoServico" required placeholder="Ex.: Corte de cabelo" />
+        </div>
+        <div class="form-group">
+          <label>Data e hora</label>
+          <input type="datetime-local" id="agendamentoDataHora" required />
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="agendamentoStatus">
+            <option value="pendente">Pendente</option>
+            <option value="confirmado">Confirmado</option>
+            <option value="cancelado">Cancelado</option>
+            <option value="concluido">Concluído</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Observações</label>
+          <textarea id="agendamentoObs" rows="2" placeholder="Opcional…"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-ghost" onclick="closeModal('modalAgendamento')">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast de feedback -->
+  <div class="toast" id="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
