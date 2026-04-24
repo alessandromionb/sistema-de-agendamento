@@ -1,6 +1,6 @@
 # AgendaPro — Sistema de Agendamentos
 
-> Aplicação conteinerizada com Docker Compose: NGINX · FastAPI · PostgreSQL
+> Aplicação conteinerizada com Docker Compose: NGINX · FastAPI · MySQL
 
 ---
 
@@ -25,7 +25,7 @@ Host (porta 80/443)
       NGINX  ──── /          → frontend estático (HTML/CSS/JS)
         │    ──── /api/*     → FastAPI (porta 8080, rede interna)
         │                           │
-        │                       PostgreSQL (rede interna, volume persistente)
+        │                       MySQL (rede interna, volume persistente)
 ```
 
 ### Rede e containers
@@ -34,7 +34,7 @@ Host (porta 80/443)
 |-----------|--------|---------------|-----------------|
 | `nginx_agendamentos` | nginx:1.25-alpine | 8080, 8443 | 80, 443 |
 | `fastapi_agendamentos` | build local | 8080 | — |
-| `postgres_agendamentos` | postgres:15-alpine | 5432 | — |
+| `mysql_agendamentos` | mysql:8.0 | 3306 | — |
 
 Todos os serviços compartilham a rede `netatividade01`.
 
@@ -55,7 +55,7 @@ git clone https://github.com/<seu-usuario>/sistema-agendamentos.git
 cd sistema-agendamentos
 
 # 2. Edite o arquivo .env com a matrícula de um integrante como senha
-#    POSTGRES_PASSWORD=20241234567
+#    MYSQL_PASSWORD=20241234567
 nano .env
 
 # 3. Suba toda a topologia com um único comando
@@ -170,6 +170,6 @@ curl -X DELETE http://localhost/api/agendamentos/1
 
 | Variável | Descrição | Padrão |
 |----------|-----------|--------|
-| `POSTGRES_USER` | Usuário do banco | `postgres` |
-| `POSTGRES_PASSWORD` | Senha — usar matrícula de integrante | _(obrigatório)_ |
-| `POSTGRES_DB` | Nome do banco | `agendamentos_db` |
+| `MYSQL_USER` | Usuário do banco | `agendamento` |
+| `MYSQL_PASSWORD` | Senha — usar matrícula de integrante | _(obrigatório)_ |
+| `MYSQL_DATABASE` | Nome do banco | `agendamentos_db` |
