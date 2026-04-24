@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import engine, Base
-from app.routes import clientes, agendamentos
+from app.routes import clientes_router, agendamentos_router
 
 # Cria as tabelas no banco na inicialização
 Base.metadata.create_all(bind=engine)
@@ -24,8 +24,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(clientes.router)
-app.include_router(agendamentos.router)
+app.include_router(clientes_router)
+app.include_router(agendamentos_router)
 
 
 @app.get("/", tags=["Health"])
