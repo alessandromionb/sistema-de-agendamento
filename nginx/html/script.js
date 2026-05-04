@@ -77,10 +77,18 @@ async function verificarAPI() {
    ═══════════════════════════════════════════════════════ */
 
 async function carregarClientes() {
-  const res = await fetch(`${API}/clientes/`);
-  clientesCache = await res.json();
-  renderClientes(clientesCache);
-  popularSelectClientes();
+  try {
+    const res = await fetch(`${API}/clientes/`);
+    if (!res.ok) {
+      showToast('Erro ao carregar clientes.', true);
+      return;
+    }
+    clientesCache = await res.json();
+    renderClientes(clientesCache);
+    popularSelectClientes();
+  } catch {
+    showToast('Erro de comunicação com a API.', true);
+  }
 }
 
 function renderClientes(lista) {
@@ -277,6 +285,56 @@ async function removerAgendamento(id) {
     showToast('Erro ao remover agendamento.', true);
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   DEMONSTRAÇÃO
+   ═══════════════════════════════════════════════════════ */
+
+async function popularBanco(clientes, agendamentos) {
+  const btn = document.querySelector(
+    `.seed-option[data-clientes="${clientes}"][data-agendamentos="${agendamentos}"]`
+  );
+
+  try {
+    if (btn) {
+      btn.disabled = true;
+      btn.classList.add('loading');
+    }
+
+    const r = await fetch(`${API}/demo/popular`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientes, agendamentos }),
+    });
+
+    if (!r.ok) {
+      const err = await r.json();
+      showToast(err.detail || 'Erro ao popular banco.', true);
+      return;
+    }
+
+    const dados = await r.json();
+    showToast(`${dados.clientes_criados} clientes e ${dados.agendamentos_criados} agendamentos criados.`);
+    await carregarClientes();
+    await carregarAgendamentos();
+  } catch {
+    showToast('Erro de comunicação com a API.', true);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+    }
+  }
+}
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.seed-option');
+  if (!btn) return;
+
+  const clientes = parseInt(btn.dataset.clientes, 10);
+  const agendamentos = parseInt(btn.dataset.agendamentos, 10);
+  popularBanco(clientes, agendamentos);
+});
 
 /* ──────── INICIALIZAÇÃO ────────────────────────────── */
 (async () => {

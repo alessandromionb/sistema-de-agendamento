@@ -153,6 +153,8 @@ Quando o banco está vazio, o backend cria automaticamente 3 clientes e alguns a
 
 Essa carga é idempotente: se já existir pelo menos um cliente no banco, ela não cria dados novamente.
 
+Também existe a tela **Popular banco** na parte inferior da barra lateral. Ela oferece opções para criar mais dados de demonstração, como 10 clientes com 5 agendamentos ou 20 clientes com 10 agendamentos.
+
 ## Endpoints
 
 ### Clientes

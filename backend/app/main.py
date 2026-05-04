@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import Base, SessionLocal, engine
-from app.routes import clientes_router, agendamentos_router
+from app.routes import agendamentos_router, clientes_router, demo_router
 from app.seed import seed_initial_data
 
 # Para a atividade, criamos as tabelas na inicialização do container.
@@ -31,6 +31,7 @@ app.add_middleware(
 
 app.include_router(clientes_router)
 app.include_router(agendamentos_router)
+app.include_router(demo_router)
 
 
 @app.get("/", tags=["Health"])

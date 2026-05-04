@@ -20,6 +20,7 @@ class ClienteUpdate(BaseModel):
 
 class ClienteOut(ClienteBase):
     id: int
+    email: str
     criado_em: datetime
 
     model_config = {"from_attributes": True}

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
   <!-- ═══════════════════════════════════ SIDEBAR ═══ -->
@@ -25,6 +25,9 @@
       </button>
     </nav>
     <div class="sidebar-footer">
+      <button class="nav-item nav-item-bottom" data-tab="popular">
+        <span class="nav-icon">＋</span> Popular banco
+      </button>
       <div class="api-status" id="apiStatus">
         <span class="dot"></span> verificando…
       </div>
@@ -89,6 +92,31 @@
             <tr><td colspan="6" class="td-empty">Carregando…</td></tr>
           </tbody>
         </table>
+      </div>
+    </section>
+
+    <!-- ──────────── POPULAR BANCO ──────────────────── -->
+    <section class="tab-panel seed-panel" id="tab-popular">
+      <header class="panel-header">
+        <div>
+          <h1 class="panel-title">Popular banco</h1>
+          <p class="panel-sub">Crie registros variados para demonstrar a aplicação</p>
+        </div>
+      </header>
+
+      <div class="seed-grid">
+        <button class="seed-option" data-clientes="10" data-agendamentos="5">
+          <strong>10 clientes</strong>
+          <span>5 agendamentos</span>
+        </button>
+        <button class="seed-option" data-clientes="20" data-agendamentos="10">
+          <strong>20 clientes</strong>
+          <span>10 agendamentos</span>
+        </button>
+        <button class="seed-option" data-clientes="50" data-agendamentos="25">
+          <strong>50 clientes</strong>
+          <span>25 agendamentos</span>
+        </button>
       </div>
     </section>
   </main>
@@ -167,6 +195,6 @@
   <!-- Toast de feedback -->
   <div class="toast" id="toast"></div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=3"></script>
 </body>
 </html>

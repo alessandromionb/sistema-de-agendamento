@@ -1,8 +1,51 @@
 from datetime import datetime, timedelta
+from random import choice
+from time import time_ns
 
 from sqlalchemy.orm import Session
 
 from app.models import Agendamento, Cliente, StatusAgendamento
+
+NOMES = [
+    "Lucas Almeida",
+    "Beatriz Costa",
+    "Rafael Nunes",
+    "Camila Rocha",
+    "Pedro Henrique",
+    "Mariana Lima",
+    "Gustavo Martins",
+    "Larissa Ferreira",
+    "Thiago Barbosa",
+    "Patricia Gomes",
+    "Felipe Carvalho",
+    "Renata Araujo",
+    "Bruno Ribeiro",
+    "Leticia Moura",
+    "Eduardo Castro",
+    "Juliana Campos",
+    "Carlos Mendes",
+    "Amanda Vieira",
+    "Vinicius Lopes",
+    "Fernanda Dias",
+]
+
+SERVICOS = [
+    "Consulta inicial",
+    "Retorno de atendimento",
+    "Avaliacao de servico",
+    "Reuniao de acompanhamento",
+    "Atendimento tecnico",
+    "Orientacao personalizada",
+    "Revisao de cadastro",
+    "Confirmacao de dados",
+]
+
+STATUS = [
+    StatusAgendamento.pendente,
+    StatusAgendamento.confirmado,
+    StatusAgendamento.cancelado,
+    StatusAgendamento.concluido,
+]
 
 
 def seed_initial_data(db: Session) -> None:
@@ -65,3 +108,44 @@ def seed_initial_data(db: Session) -> None:
 
     db.add_all(agendamentos)
     db.commit()
+
+
+def seed_demo_data(db: Session, total_clientes: int, total_agendamentos: int) -> dict:
+    lote = str(time_ns())[-5:]
+    clientes = []
+
+    for i in range(total_clientes):
+        nome = NOMES[i % len(NOMES)]
+        slug = nome.lower().replace(" ", ".")
+        clientes.append(
+            Cliente(
+                nome=nome,
+                email=f"{slug}{lote}{i}@email.com",
+                telefone=f"(63) 9{9000 + i:04d}-{1000 + i:04d}",
+            )
+        )
+
+    db.add_all(clientes)
+    db.flush()
+
+    agora = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+    agendamentos = []
+    for i in range(total_agendamentos):
+        cliente = clientes[i % len(clientes)] if clientes else choice(db.query(Cliente).all())
+        agendamentos.append(
+            Agendamento(
+                cliente_id=cliente.id,
+                servico=SERVICOS[i % len(SERVICOS)],
+                data_hora=agora + timedelta(days=(i % 14) + 1, hours=8 + (i % 8)),
+                status=STATUS[i % len(STATUS)],
+                observacoes=f"Registro demo criado no lote {lote}.",
+            )
+        )
+
+    db.add_all(agendamentos)
+    db.commit()
+
+    return {
+        "clientes_criados": len(clientes),
+        "agendamentos_criados": len(agendamentos),
+    }
