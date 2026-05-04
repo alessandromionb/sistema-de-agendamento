@@ -32,6 +32,7 @@ class Base(DeclarativeBase):
 
 
 def get_db():
+    """Entrega uma sessão por requisição e fecha a conexão ao final."""
     db = SessionLocal()
     try:
         yield db

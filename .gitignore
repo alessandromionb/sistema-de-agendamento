@@ -1,1 +1,41 @@
+# Environment and local secrets
 .env
+.env.*
+!.env.example
+.codex
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+
+# Docker and local runtime files
+*.pid
+*.log
+logs/
+docker-data/
+postgres_data/
+mysql_data/
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.codex
+*.swp
+*.swo
+
+# Frontend/cache artifacts
+node_modules/
+dist/
+build/
+.cache/

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Agendamento, Cliente
+from app.models import Agendamento, Cliente, StatusAgendamento
 from app.schemas.agendamento import AgendamentoCreate, AgendamentoOut, AgendamentoUpdate
 
 router = APIRouter(prefix="/agendamentos", tags=["Agendamentos"])
@@ -14,11 +14,14 @@ def listar_agendamentos(
     skip: int = 0,
     limit: int = 100,
     cliente_id: int | None = None,
+    status: StatusAgendamento | None = None,
     db: Session = Depends(get_db),
 ):
     query = db.query(Agendamento)
     if cliente_id:
         query = query.filter(Agendamento.cliente_id == cliente_id)
+    if status:
+        query = query.filter(Agendamento.status == status)
     return query.offset(skip).limit(limit).all()
 
 

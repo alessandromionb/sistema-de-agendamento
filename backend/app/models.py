@@ -45,4 +45,5 @@ class Agendamento(Base):
     observacoes = Column(Text, nullable=True)
     criado_em = Column(DateTime, default=datetime.utcnow, nullable=False)
 
+    # Relaciona cada agendamento a exatamente um cliente.
     cliente = relationship("Cliente", back_populates="agendamentos")

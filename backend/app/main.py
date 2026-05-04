@@ -1,15 +1,20 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database import engine, Base
+from app.database import Base, SessionLocal, engine
 from app.routes import clientes_router, agendamentos_router
+from app.seed import seed_initial_data
 
-# Cria as tabelas no banco na inicialização
+# Para a atividade, criamos as tabelas na inicialização do container.
+# Em produção, o caminho natural seria substituir isso por migrations.
 Base.metadata.create_all(bind=engine)
+
+with SessionLocal() as db:
+    seed_initial_data(db)
 
 app = FastAPI(
     title="Sistema de Agendamentos",
-    description="API para gerenciamento de clientes e agendamentos",
+    description="API FastAPI para CRUD de clientes e agendamentos usando MySQL.",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
