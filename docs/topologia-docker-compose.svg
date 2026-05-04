@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="960" viewBox="0 0 1600 960" role="img" aria-labelledby="title desc">
+  <title id="title">Topologia Docker Compose do AgendaPro</title>
+  <desc id="desc">Diagrama visual da arquitetura com hospedeiro, NGINX, FastAPI, MySQL, rede Docker netatividade01, variáveis de ambiente e volume mysql_data.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#fff7ed"/>
+    </linearGradient>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#0f172a" flood-opacity=".13"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M2,2 L12,7 L2,12 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M2,2 L12,7 L2,12 Z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M2,2 L12,7 L2,12 Z" fill="#ea580c"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M2,2 L12,7 L2,12 Z" fill="#7c3aed"/>
+    </marker>
+    <style>
+      .title { font: 800 46px Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 20px Arial, sans-serif; fill: #64748b; }
+      .box-title { font: 800 27px Arial, sans-serif; }
+      .box-sub { font: 600 18px Arial, sans-serif; fill: #334155; }
+      .text { font: 400 17px Arial, sans-serif; fill: #334155; }
+      .small { font: 400 15px Arial, sans-serif; fill: #475569; }
+      .tiny { font: 600 13px Arial, sans-serif; fill: #64748b; letter-spacing: .5px; }
+      .badge { font: 700 14px Arial, sans-serif; fill: #ffffff; }
+      .callout-title { font: 800 17px Arial, sans-serif; fill: #111827; }
+      .callout { font: 400 15px Arial, sans-serif; fill: #374151; }
+      .footer { font: 700 21px Arial, sans-serif; fill: #b91c1c; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="960" fill="url(#bg)"/>
+  <text x="800" y="58" text-anchor="middle" class="title">AgendaPro: Topologia com Docker Compose</text>
+  <text x="800" y="91" text-anchor="middle" class="subtitle">NGINX exposto ao hospedeiro, FastAPI e MySQL protegidos na rede interna netatividade01</text>
+
+  <!-- Network canvas -->
+  <rect x="70" y="135" width="1460" height="690" rx="32" fill="#ffffff" stroke="#cbd5e1" stroke-width="3"/>
+  <rect x="95" y="160" width="1410" height="640" rx="26" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="12 10"/>
+  <text x="126" y="200" class="tiny">DOCKER NETWORK</text>
+  <text x="126" y="232" font-family="Arial, sans-serif" font-size="28" font-weight="800" fill="#334155">netatividade01</text>
+
+  <!-- Host -->
+  <g filter="url(#shadow)">
+    <rect x="120" y="355" width="245" height="235" rx="28" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+  </g>
+  <circle cx="242" cy="415" r="34" fill="#e0f2fe" stroke="#38bdf8" stroke-width="2"/>
+  <rect x="222" y="397" width="40" height="30" rx="4" fill="#ffffff" stroke="#0284c7" stroke-width="3"/>
+  <rect x="236" y="429" width="12" height="12" rx="2" fill="#0284c7"/>
+  <line x1="218" y1="444" x2="266" y2="444" stroke="#0284c7" stroke-width="4" stroke-linecap="round"/>
+  <text x="242" y="490" text-anchor="middle" class="box-title" fill="#0f172a">Hospedeiro</text>
+  <text x="242" y="524" text-anchor="middle" class="box-sub">Navegador / Cliente</text>
+  <text x="242" y="556" text-anchor="middle" class="text">Acessa http://localhost</text>
+
+  <!-- NGINX -->
+  <g filter="url(#shadow)">
+    <rect x="455" y="300" width="280" height="345" rx="30" fill="#eff6ff" stroke="#2563eb" stroke-width="4"/>
+  </g>
+  <circle cx="595" cy="365" r="38" fill="#dbeafe" stroke="#2563eb" stroke-width="3"/>
+  <path d="M574 379 L595 342 L616 379 Z" fill="#2563eb"/>
+  <text x="595" y="440" text-anchor="middle" class="box-title" fill="#2563eb">NGINX</text>
+  <text x="595" y="476" text-anchor="middle" class="box-sub">Frontend + Proxy</text>
+  <rect x="492" y="510" width="206" height="44" rx="12" fill="#ffffff" stroke="#bfdbfe"/>
+  <text x="595" y="538" text-anchor="middle" class="text">/ serve HTML CSS JS</text>
+  <rect x="492" y="568" width="206" height="44" rx="12" fill="#ffffff" stroke="#bfdbfe"/>
+  <text x="595" y="596" text-anchor="middle" class="text">/api encaminha API</text>
+
+  <!-- FastAPI -->
+  <g filter="url(#shadow)">
+    <rect x="845" y="245" width="310" height="300" rx="30" fill="#ecfdf5" stroke="#16a34a" stroke-width="4"/>
+  </g>
+  <circle cx="1000" cy="312" r="38" fill="#dcfce7" stroke="#16a34a" stroke-width="3"/>
+  <path d="M986 294 L1020 312 L986 330 Z" fill="#16a34a"/>
+  <text x="1000" y="386" text-anchor="middle" class="box-title" fill="#15803d">FastAPI</text>
+  <text x="1000" y="422" text-anchor="middle" class="box-sub">Backend HTTP :8080</text>
+  <rect x="885" y="456" width="230" height="56" rx="14" fill="#ffffff" stroke="#bbf7d0"/>
+  <text x="1000" y="480" text-anchor="middle" class="text">CRUD de clientes</text>
+  <text x="1000" y="503" text-anchor="middle" class="text">e agendamentos</text>
+
+  <!-- MySQL -->
+  <g filter="url(#shadow)">
+    <rect x="845" y="615" width="310" height="185" rx="30" fill="#fff7ed" stroke="#ea580c" stroke-width="4"/>
+  </g>
+  <circle cx="1000" cy="668" r="35" fill="#ffedd5" stroke="#ea580c" stroke-width="3"/>
+  <ellipse cx="1000" cy="655" rx="23" ry="9" fill="#fb923c"/>
+  <path d="M977 655 v30 c0 5 10 9 23 9 s23-4 23-9 v-30" fill="#fdba74" stroke="#ea580c" stroke-width="2"/>
+  <ellipse cx="1000" cy="685" rx="23" ry="9" fill="#fed7aa" stroke="#ea580c" stroke-width="2"/>
+  <text x="1000" y="738" text-anchor="middle" class="box-title" fill="#ea580c">MySQL</text>
+  <text x="1000" y="773" text-anchor="middle" class="box-sub">Banco interno :3306</text>
+
+  <!-- Volume -->
+  <g filter="url(#shadow)">
+    <rect x="1240" y="632" width="220" height="145" rx="24" fill="#f5f3ff" stroke="#7c3aed" stroke-width="4"/>
+  </g>
+  <path d="M1300 675 h100 a18 18 0 0 1 18 18 v35 a18 18 0 0 1-18 18 h-100 a18 18 0 0 1-18-18 v-35 a18 18 0 0 1 18-18 z" fill="#ede9fe" stroke="#7c3aed" stroke-width="3"/>
+  <path d="M1282 700 h136" stroke="#7c3aed" stroke-width="3"/>
+  <text x="1350" y="702" text-anchor="middle" class="box-sub" fill="#5b21b6">Volume</text>
+  <text x="1350" y="734" text-anchor="middle" class="text">mysql_data</text>
+
+  <!-- Arrows -->
+  <path d="M365 472 C400 472 420 472 455 472" fill="none" stroke="#2563eb" stroke-width="6" marker-end="url(#arrow-blue)"/>
+  <rect x="350" y="420" width="170" height="38" rx="19" fill="#2563eb"/>
+  <text x="435" y="445" text-anchor="middle" class="badge">80 / 443</text>
+
+  <path d="M735 472 C780 472 800 392 845 392" fill="none" stroke="#16a34a" stroke-width="6" marker-end="url(#arrow-green)"/>
+  <rect x="718" y="375" width="130" height="38" rx="19" fill="#16a34a"/>
+  <text x="783" y="400" text-anchor="middle" class="badge">/api</text>
+
+  <path d="M1000 545 L1000 615" fill="none" stroke="#ea580c" stroke-width="6" marker-end="url(#arrow-orange)"/>
+  <rect x="1030" y="562" width="165" height="38" rx="19" fill="#ea580c"/>
+  <text x="1112" y="587" text-anchor="middle" class="badge">MYSQL_HOST</text>
+
+  <path d="M1155 708 L1240 708" fill="none" stroke="#7c3aed" stroke-width="6" marker-end="url(#arrow-purple)"/>
+  <rect x="1168" y="658" width="128" height="38" rx="19" fill="#7c3aed"/>
+  <text x="1232" y="683" text-anchor="middle" class="badge">persistência</text>
+
+  <!-- Details rail -->
+  <g filter="url(#shadow)">
+    <rect x="1198" y="245" width="260" height="300" rx="24" fill="#ffffff" stroke="#e2e8f0"/>
+  </g>
+  <text x="1230" y="292" class="callout-title">Detalhes da topologia</text>
+  <circle cx="1232" cy="330" r="5" fill="#2563eb"/>
+  <text x="1250" y="336" class="callout">Somente NGINX publica portas</text>
+  <text x="1250" y="359" class="callout">80:8080 e 443:8443</text>
+  <circle cx="1232" cy="397" r="5" fill="#16a34a"/>
+  <text x="1250" y="403" class="callout">FastAPI não é exposto</text>
+  <text x="1250" y="426" class="callout">ao hospedeiro</text>
+  <circle cx="1232" cy="464" r="5" fill="#ea580c"/>
+  <text x="1250" y="470" class="callout">MySQL fica acessível</text>
+  <text x="1250" y="493" class="callout">só pela rede Docker</text>
+
+  <!-- Env card -->
+  <g filter="url(#shadow)">
+    <rect x="455" y="675" width="280" height="110" rx="22" fill="#ffffff" stroke="#e2e8f0"/>
+  </g>
+  <text x="485" y="714" class="callout-title">Variáveis no FastAPI</text>
+  <text x="485" y="746" class="callout">MYSQL_HOST=mysql</text>
+  <text x="485" y="772" class="callout">MYSQL_DATABASE=agendamentos_db</text>
+
+  <text x="800" y="890" text-anchor="middle" class="footer">Fluxo: Navegador → NGINX → FastAPI → MySQL. Apenas o NGINX recebe tráfego externo.</text>
+</svg>

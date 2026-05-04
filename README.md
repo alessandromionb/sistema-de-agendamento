@@ -22,6 +22,8 @@ Demonstrar uma topologia com múltiplos serviços integrados por uma rede Docker
 
 ## Topologia
 
+![Topologia da aplicação com Docker Compose](docs/topologia-docker-compose.svg)
+
 ```text
 Hospedeiro
   └── portas 80 e 443
