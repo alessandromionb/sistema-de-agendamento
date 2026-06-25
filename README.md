@@ -26,6 +26,7 @@ VM1 - camada de dados - K3s agent
 VM2 - camada de aplicacao - K3s server
   FastAPI 8080   - ClusterIP, sem porta no host
   NGINX 80/443   - NodePort 30080/30443, unico acesso externo
+  Grafana 3000   - NodePort 30300, desafio extra
 ```
 
 Os manifests ficam em [`k8s/`](/home/bolsistanovo/Área de trabalho/sistema-de-agendamento/k8s) e usam `nodeSelector` para fixar os pods:
@@ -36,6 +37,7 @@ Os manifests ficam em [`k8s/`](/home/bolsistanovo/Área de trabalho/sistema-de-a
 | Loki | Deployment | 1 | `camada=dados` |
 | FastAPI | Deployment | 2 | `camada=aplicacao` |
 | NGINX | Deployment | 2 | `camada=aplicacao` |
+| Grafana | Deployment | 1 | `camada=aplicacao` |
 
 ## Estrutura
 
@@ -60,6 +62,8 @@ sistema-de-agendamento/
 │   ├── 05-loki.yaml
 │   ├── 06-fastapi.yaml
 │   ├── 07-nginx.yaml
+│   ├── 08-ingress.yaml
+│   ├── 09-grafana.yaml
 │   └── kustomization.yaml
 ├── loki/
 │   └── loki-config.yaml
@@ -125,6 +129,8 @@ VM2 aplicacao:  192.168.56.12
 ```
 
 As duas VMs precisam estar na mesma rede e conseguir se comunicar entre si.
+
+Distribuição recomendada para as duas VMs: **Ubuntu Server 24.04 LTS**. Ela é leve, tem suporte longo, é bem documentada e funciona sem ajustes especiais com K3s, Docker e VirtualBox/KVM. Se as VMs tiverem pouca memória, **Debian 12 minimal** também é uma ótima opção.
 
 Na **VM2**, instale o K3s server:
 
@@ -198,6 +204,54 @@ No navegador:
 ```text
 http://192.168.56.12:30080
 https://192.168.56.12:30443
+```
+
+## Desafio Extra: Ingress Com Traefik
+
+O K3s já instala o Traefik por padrão. O manifesto [`k8s/08-ingress.yaml`](/home/bolsistanovo/Área de trabalho/sistema-de-agendamento/k8s/08-ingress.yaml) cria um Ingress para o host `agenda.local`.
+
+Na máquina que vai acessar o navegador, adicione no arquivo `hosts`:
+
+```text
+192.168.56.12 agenda.local
+```
+
+No Linux, edite `/etc/hosts` com `sudo`. No Windows, edite `C:\Windows\System32\drivers\etc\hosts` como administrador.
+
+Depois acesse:
+
+```text
+http://agenda.local
+```
+
+Verifique o Ingress:
+
+```bash
+sudo kubectl get ingress -n agendamentos
+sudo kubectl describe ingress agenda-ingress -n agendamentos
+```
+
+## Desafio Extra: Grafana
+
+O manifesto [`k8s/09-grafana.yaml`](/home/bolsistanovo/Área de trabalho/sistema-de-agendamento/k8s/09-grafana.yaml) sobe o Grafana na VM2 e já provisiona o Loki como datasource.
+
+Acesse:
+
+```text
+http://192.168.56.12:30300
+```
+
+Credenciais:
+
+```text
+usuario: admin
+senha: admin
+```
+
+No Grafana, abra **Explore**, selecione **Loki** e consulte:
+
+```logql
+{service="fastapi"}
 ```
 
 ## Logs Centralizados Com Loki
@@ -278,6 +332,8 @@ Resultado esperado:
 1. Mostrar `sudo kubectl get nodes --show-labels`.
 2. Mostrar `sudo kubectl get pods -n agendamentos -o wide`.
 3. Mostrar `sudo kubectl get svc -n agendamentos` e destacar que só o NGINX é `NodePort`.
-4. Abrir `http://IP_DA_VM2:30080` e fazer uma operação CRUD.
-5. Consultar o Loki pela API HTTP com `query={service="fastapi"}`.
-6. Explicar que PostgreSQL e Loki possuem PVC e ficam fixados na VM1 por `nodeSelector`.
+4. Mostrar `sudo kubectl get ingress -n agendamentos` para o desafio extra do Traefik.
+5. Abrir `http://IP_DA_VM2:30080` ou `http://agenda.local` e fazer uma operação CRUD.
+6. Consultar o Loki pela API HTTP com `query={service="fastapi"}`.
+7. Abrir o Grafana em `http://IP_DA_VM2:30300` e consultar `{service="fastapi"}` no Explore.
+8. Explicar que PostgreSQL e Loki possuem PVC e ficam fixados na VM1 por `nodeSelector`.

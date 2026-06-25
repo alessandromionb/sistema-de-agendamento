@@ -9,3 +9,5 @@ resources:
   - 05-loki.yaml
   - 06-fastapi.yaml
   - 07-nginx.yaml
+  - 08-ingress.yaml
+  - 09-grafana.yaml
