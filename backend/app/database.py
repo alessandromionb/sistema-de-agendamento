@@ -4,17 +4,18 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    MYSQL_USER: str
-    MYSQL_PASSWORD: str
-    MYSQL_DATABASE: str
-    MYSQL_HOST: str = "mysql"
-    MYSQL_PORT: int = 3306
+    POSTGRES_USER: str = "agendamento"
+    POSTGRES_PASSWORD: str = "20241si000"
+    POSTGRES_DB: str = "agendamentos_db"
+    POSTGRES_HOST: str = "postgres"
+    POSTGRES_PORT: int = 5432
+    LOKI_URL: str = "http://loki:3100"
 
     @property
     def database_url(self) -> str:
         return (
-            f"mysql+pymysql://{self.MYSQL_USER}:{self.MYSQL_PASSWORD}"
-            f"@{self.MYSQL_HOST}:{self.MYSQL_PORT}/{self.MYSQL_DATABASE}"
+            f"postgresql+psycopg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
         )
 
     class Config:

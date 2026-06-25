@@ -1,6 +1,6 @@
 # AgendaPro — Sistema de Agendamentos
 
-Aplicação web conteinerizada com Docker Compose para a disciplina **Serviços de Redes para Internet**. O projeto implementa o tema do **Grupo 5: Sistema de Agendamentos**, com CRUD de clientes e agendamentos.
+Aplicação web do **Grupo 5** para a disciplina **Serviços de Redes para Internet**. O projeto implementa um sistema de agendamentos com CRUD de `clientes` e `agendamentos`, usando **NGINX + FastAPI + PostgreSQL** e orquestração em cluster com **K3s**.
 
 ## Integrantes
 
@@ -10,107 +10,79 @@ Aplicação web conteinerizada com Docker Compose para a disciplina **Serviços 
 | Andrey Magalhães Silva | 20241si032 |
 | Miguel Santuchi Poleto | 20241si019 |
 
-## Objetivo da Atividade
+## Orquestrador
 
-Demonstrar uma topologia com múltiplos serviços integrados por uma rede Docker própria:
+O orquestrador utilizado é o **K3s**, distribuição leve de Kubernetes indicada para laboratório, edge e ambientes com poucos recursos.
 
-- **NGINX** como único serviço exposto ao hospedeiro.
-- **FastAPI** como backend HTTP, escutando na porta `8080` apenas dentro da rede Docker.
-- **MySQL** como banco de dados persistente, acessível apenas pela rede interna.
-- **Frontend estático** servido pelo NGINX na rota `/`.
-- **Proxy reverso** encaminhando `/api` para a API FastAPI.
+O cluster mínimo da atividade usa duas VMs:
 
-## Topologia
-
-![Topologia da aplicação com Docker Compose](docs/topologia-docker-compose.svg)
+![Topologia K3s do Grupo 5](docs/topologia-k3s.svg)
 
 ```text
-Hospedeiro
-  └── portas 80 e 443
-        └── nginx_agendamentos
-              ├── /      -> frontend estático
-              └── /api   -> fastapi_agendamentos:8080
-                               └── mysql_agendamentos:3306
+VM1 - camada de dados - K3s agent
+  PostgreSQL 5432 - ClusterIP, sem porta no host
+  Loki 3100      - ClusterIP, sem porta no host
+
+VM2 - camada de aplicacao - K3s server
+  FastAPI 8080   - ClusterIP, sem porta no host
+  NGINX 80/443   - NodePort 30080/30443, unico acesso externo
 ```
 
-Todos os containers estão conectados à rede `netatividade01`.
+Os manifests ficam em [`k8s/`](/home/bolsistanovo/Área de trabalho/sistema-de-agendamento/k8s) e usam `nodeSelector` para fixar os pods:
 
-| Serviço | Container | Função | Porta interna | Porta no host |
-|---------|-----------|--------|----------------|---------------|
-| `nginx` | `nginx_agendamentos` | Frontend e proxy reverso | `8080`, `8443` | `80`, `443` |
-| `fastapi` | `fastapi_agendamentos` | API CRUD | `8080` | não exposta |
-| `mysql` | `mysql_agendamentos` | Banco de dados | `3306` | não exposta |
-
-## Requisitos Atendidos
-
-- Topologia mínima com `nginx`, `fastapi` e `mysql`.
-- Rede Docker customizada chamada `netatividade01`.
-- MySQL com usuário comum `agendamento`.
-- Senha do banco definida por variável de ambiente.
-- Volume Docker para persistência do MySQL.
-- FastAPI depende do MySQL saudável antes de iniciar.
-- NGINX é o único serviço publicado no hospedeiro.
-- Frontend consome a API por `/api`.
-- CRUD completo de duas entidades relacionadas: `clientes` e `agendamentos`.
-- Healthcheck no MySQL.
-- HTTPS local com certificado autoassinado gerado no build do NGINX.
+| Serviço | Recurso Kubernetes | Réplicas | Nó obrigatório |
+|---------|--------------------|----------|----------------|
+| PostgreSQL | StatefulSet | 1 | `camada=dados` |
+| Loki | Deployment | 1 | `camada=dados` |
+| FastAPI | Deployment | 2 | `camada=aplicacao` |
+| NGINX | Deployment | 2 | `camada=aplicacao` |
 
 ## Estrutura
 
 ```text
 sistema-de-agendamento/
-├── docker-compose.yml
-├── .env.example
-├── README.md
 ├── backend/
 │   ├── Dockerfile
 │   ├── requirements.txt
 │   └── app/
 │       ├── main.py
 │       ├── database.py
+│       ├── logger.py
 │       ├── models.py
 │       ├── routes/
-│       │   ├── clientes.py
-│       │   └── agendamentos.py
 │       └── schemas/
-│           ├── cliente.py
-│           └── agendamento.py
-└── nginx/
-    ├── Dockerfile
-    ├── nginx.conf
-    └── html/
-        ├── index.html
-        ├── style.css
-        └── script.js
+├── k8s/
+│   ├── 00-namespace.yaml
+│   ├── 01-secret-postgres.yaml
+│   ├── 02-configmaps.yaml
+│   ├── 03-pvcs.yaml
+│   ├── 04-postgres.yaml
+│   ├── 05-loki.yaml
+│   ├── 06-fastapi.yaml
+│   ├── 07-nginx.yaml
+│   └── kustomization.yaml
+├── loki/
+│   └── loki-config.yaml
+├── nginx/
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── html/
+└── docker-compose.yml
 ```
 
-## Variáveis de Ambiente
+## Variáveis Locais
 
-Crie o arquivo `.env` a partir do exemplo:
-
-```bash
-cp .env.example .env
-```
-
-Conteúdo esperado:
+Para testar com Docker Compose, crie ou ajuste `.env`:
 
 ```env
-MYSQL_USER=agendamento
-MYSQL_PASSWORD=20241si000
-MYSQL_DATABASE=agendamentos_db
+POSTGRES_USER=agendamento
+POSTGRES_PASSWORD=20241si019
+POSTGRES_DB=agendamentos_db
 ```
 
-Use como `MYSQL_PASSWORD` a matrícula de um integrante do grupo.
+No K3s, essas credenciais ficam no Secret [`k8s/01-secret-postgres.yaml`](/home/bolsistanovo/Área de trabalho/sistema-de-agendamento/k8s/01-secret-postgres.yaml).
 
-## Como Executar
-
-Suba toda a topologia com:
-
-```bash
-docker compose up --build
-```
-
-Ou em segundo plano:
+## Teste Local Com Compose
 
 ```bash
 docker compose up --build -d
@@ -119,47 +91,175 @@ docker compose up --build -d
 Acesse:
 
 - Frontend: `http://localhost`
-- Frontend com HTTPS local: `https://localhost`
 - Swagger/FastAPI: `http://localhost/api/docs`
-- Health check da API: `http://localhost/api/`
+- Health check: `http://localhost/api/`
 
-O navegador pode alertar que o certificado HTTPS é autoassinado. Isso é esperado em ambiente local.
-
-Para parar sem apagar os dados:
+Parar sem apagar dados:
 
 ```bash
 docker compose down
 ```
 
-Para parar e apagar o volume do banco:
+Parar apagando volumes:
 
 ```bash
 docker compose down -v
 ```
 
-Se sua instalação do Docker Compose apresentar erro interno relacionado ao Bake durante o build, rode:
+Se o PostgreSQL local acusar senha inválida ou versão incompatível, provavelmente existe um volume antigo na máquina. Para um teste limpo de laboratório, pare e recrie apagando os volumes:
 
 ```bash
-COMPOSE_BAKE=false docker compose up --build
+docker compose down -v
+docker compose up --build -d
 ```
 
-Com Docker via `sudo`, use:
+Se a porta `80` já estiver em uso no hospedeiro, altere temporariamente o mapeamento do serviço `nginx` no `docker-compose.yml` ou pare o serviço local que está usando essa porta.
+
+## Provisionamento Das VMs
+
+Exemplo de endereços usados nos comandos abaixo:
+
+```text
+VM1 dados:      192.168.56.11
+VM2 aplicacao:  192.168.56.12
+```
+
+As duas VMs precisam estar na mesma rede e conseguir se comunicar entre si.
+
+Na **VM2**, instale o K3s server:
 
 ```bash
-sudo env COMPOSE_BAKE=false docker compose up --build
+curl -sfL https://get.k3s.io | sh -
+sudo kubectl get nodes
+sudo cat /var/lib/rancher/k3s/server/node-token
 ```
 
-## Dados Iniciais
+Na **VM1**, instale o K3s agent usando o token da VM2:
 
-Quando o banco está vazio, o backend cria automaticamente 3 clientes e alguns agendamentos de exemplo. Isso facilita a demonstração em sala, porque a interface já abre com registros para listar, editar e remover.
+```bash
+curl -sfL https://get.k3s.io | K3S_URL=https://192.168.56.12:6443 K3S_TOKEN=<TOKEN_DA_VM2> sh -
+```
 
-Essa carga é idempotente: se já existir pelo menos um cliente no banco, ela não cria dados novamente.
+Na **VM2**, rotule os nós:
 
-Também existe a tela **Popular banco** na parte inferior da barra lateral. Ela oferece opções para criar mais dados de demonstração, como 10 clientes com 5 agendamentos ou 20 clientes com 10 agendamentos.
+```bash
+sudo kubectl get nodes -o wide
+sudo kubectl label node <NOME_DO_NODE_VM1> camada=dados
+sudo kubectl label node <NOME_DO_NODE_VM2> camada=aplicacao
+sudo kubectl get nodes --show-labels
+```
+
+## Imagens Da Aplicação
+
+Os manifests usam imagens locais:
+
+```text
+agenda-fastapi:1.0
+agenda-nginx:1.0
+```
+
+Na **VM2**, dentro do repositório:
+
+```bash
+docker build -t agenda-fastapi:1.0 ./backend
+docker build -t agenda-nginx:1.0 ./nginx
+docker save agenda-fastapi:1.0 -o agenda-fastapi.tar
+docker save agenda-nginx:1.0 -o agenda-nginx.tar
+sudo k3s ctr -n k8s.io images import agenda-fastapi.tar
+sudo k3s ctr -n k8s.io images import agenda-nginx.tar
+```
+
+Como o FastAPI e o NGINX são fixados na VM2, as imagens locais precisam existir nesse nó. Se publicar no Docker Hub, altere `image:` em [`k8s/06-fastapi.yaml`](/home/bolsistanovo/Área de trabalho/sistema-de-agendamento/k8s/06-fastapi.yaml) e [`k8s/07-nginx.yaml`](/home/bolsistanovo/Área de trabalho/sistema-de-agendamento/k8s/07-nginx.yaml).
+
+## Deploy No K3s
+
+Na **VM2**, aplique todos os manifests:
+
+```bash
+sudo kubectl apply -k k8s/
+```
+
+Verifique o estado:
+
+```bash
+sudo kubectl get pods -n agendamentos -o wide
+sudo kubectl get svc -n agendamentos
+sudo kubectl get pvc -n agendamentos
+```
+
+O acesso externo ao sistema fica apenas pelo NGINX:
+
+```bash
+curl http://192.168.56.12:30080/api/
+```
+
+No navegador:
+
+```text
+http://192.168.56.12:30080
+https://192.168.56.12:30443
+```
+
+## Logs Centralizados Com Loki
+
+O arquivo de configuração do Loki está em [`loki/loki-config.yaml`](/home/bolsistanovo/Área de trabalho/sistema-de-agendamento/loki/loki-config.yaml) e também é aplicado no cluster via ConfigMap.
+
+O backend envia ao Loki:
+
+- inicialização da aplicação;
+- cada requisição recebida, com método, rota e código HTTP;
+- erros de conexão com o PostgreSQL.
+
+Como o Loki é `ClusterIP`, ele não fica exposto fora do cluster. Para consultar durante a entrevista, use `port-forward` na VM2:
+
+```bash
+sudo kubectl -n agendamentos port-forward svc/loki 3100:3100
+```
+
+Em outro terminal:
+
+```bash
+curl http://localhost:3100/loki/api/v1/labels
+```
+
+Consultar logs do FastAPI dos últimos 10 minutos:
+
+```bash
+curl -G 'http://localhost:3100/loki/api/v1/query_range' \
+  --data-urlencode 'query={service="fastapi"}' \
+  --data-urlencode 'start='"$(date -d '10 minutes ago' +%s000000000)"'' \
+  --data-urlencode 'end='"$(date +%s000000000)"''
+```
+
+## Comprovação Do Isolamento
+
+Somente o Service `nginx` é `NodePort`:
+
+```bash
+sudo kubectl get svc -n agendamentos
+```
+
+Resultado esperado:
+
+```text
+fastapi    ClusterIP
+postgres   ClusterIP
+loki       ClusterIP
+nginx      NodePort
+```
+
+PostgreSQL, Loki e FastAPI só são acessíveis pela rede interna do cluster. Para provar posicionamento dos pods:
+
+```bash
+sudo kubectl get pods -n agendamentos -o wide
+```
+
+Resultado esperado:
+
+- `postgres` e `loki` na VM1, nó com label `camada=dados`;
+- `fastapi` e `nginx` na VM2, nó com label `camada=aplicacao`.
 
 ## Endpoints
-
-### Clientes
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
@@ -168,68 +268,16 @@ Também existe a tela **Popular banco** na parte inferior da barra lateral. Ela 
 | `POST` | `/api/clientes/` | Cria cliente |
 | `PUT` | `/api/clientes/{id}` | Atualiza cliente |
 | `DELETE` | `/api/clientes/{id}` | Remove cliente e seus agendamentos |
-
-### Agendamentos
-
-| Método | Rota | Descrição |
-|--------|------|-----------|
 | `GET` | `/api/agendamentos/` | Lista agendamentos |
-| `GET` | `/api/agendamentos/?status=pendente` | Filtra por status |
-| `GET` | `/api/agendamentos/?cliente_id=1` | Filtra por cliente |
-| `GET` | `/api/agendamentos/{id}` | Busca um agendamento |
 | `POST` | `/api/agendamentos/` | Cria agendamento |
 | `PUT` | `/api/agendamentos/{id}` | Atualiza agendamento |
 | `DELETE` | `/api/agendamentos/{id}` | Remove agendamento |
 
-## Exemplos com `curl`
+## Roteiro Curto Para A Entrevista
 
-Criar cliente:
-
-```bash
-curl -X POST http://localhost/api/clientes/ \
-  -H "Content-Type: application/json" \
-  -d '{"nome":"João Silva","email":"joao@email.com","telefone":"(63) 99999-0001"}'
-```
-
-Listar clientes:
-
-```bash
-curl http://localhost/api/clientes/
-```
-
-Criar agendamento:
-
-```bash
-curl -X POST http://localhost/api/agendamentos/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "cliente_id": 1,
-    "servico": "Consulta inicial",
-    "data_hora": "2026-05-20T14:00:00",
-    "status": "pendente",
-    "observacoes": "Primeiro atendimento"
-  }'
-```
-
-Atualizar agendamento:
-
-```bash
-curl -X PUT http://localhost/api/agendamentos/1 \
-  -H "Content-Type: application/json" \
-  -d '{"status":"confirmado"}'
-```
-
-Remover agendamento:
-
-```bash
-curl -X DELETE http://localhost/api/agendamentos/1
-```
-
-## Pontos Para Explicar na Apresentação
-
-- O NGINX é o único container exposto ao hospedeiro, atendendo a exigência de isolamento.
-- O backend não usa `localhost` para acessar o banco; usa o nome do serviço `mysql`, resolvido pela rede Docker.
-- O `depends_on` com `condition: service_healthy` faz o FastAPI aguardar o MySQL aceitar conexões.
-- O volume `mysql_data` mantém os dados mesmo após `docker compose down`.
-- A rota `/api` no NGINX remove a necessidade de expor a porta do FastAPI.
-- As entidades possuem relacionamento: um cliente pode ter vários agendamentos.
+1. Mostrar `sudo kubectl get nodes --show-labels`.
+2. Mostrar `sudo kubectl get pods -n agendamentos -o wide`.
+3. Mostrar `sudo kubectl get svc -n agendamentos` e destacar que só o NGINX é `NodePort`.
+4. Abrir `http://IP_DA_VM2:30080` e fazer uma operação CRUD.
+5. Consultar o Loki pela API HTTP com `query={service="fastapi"}`.
+6. Explicar que PostgreSQL e Loki possuem PVC e ficam fixados na VM1 por `nodeSelector`.
