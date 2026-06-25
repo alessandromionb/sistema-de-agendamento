@@ -16,6 +16,6 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # Copia os arquivos estáticos do frontend
 COPY html/ /usr/share/nginx/html/
 
-EXPOSE 8080 8443
+EXPOSE 80 443
 
 CMD ["nginx", "-g", "daemon off;"]
